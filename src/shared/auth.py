@@ -1,33 +1,20 @@
-import base64
-import hashlib
-import hmac
-import os
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 import jwt
 
 from src.shared import config
 
 
 def hash_password(password):
-    salt = os.urandom(16)
-    derived = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 120000)
-    return f"pbkdf2_sha256${base64.b64encode(salt).decode()}${base64.b64encode(derived).decode()}"
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(password, password_hash):
     try:
-        algorithm, salt_b64, hash_b64 = password_hash.split("$")
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
     except ValueError:
         return False
-
-    if algorithm != "pbkdf2_sha256":
-        return False
-
-    salt = base64.b64decode(salt_b64.encode())
-    expected = base64.b64decode(hash_b64.encode())
-    actual = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 120000)
-    return hmac.compare_digest(actual, expected)
 
 
 def create_token(user):
