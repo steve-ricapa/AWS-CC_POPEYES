@@ -1,0 +1,6 @@
+.env
+.serverless/
+node_modules/
+__pycache__/
+.pytest_cache/
+*.pyc
